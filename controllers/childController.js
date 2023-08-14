@@ -6,22 +6,34 @@ class ChildController {
       static CreateChild = async (req, res) => {
                     const { name, age, gender } = req.body  
                     const userId = req.parent._id 
-                      if (name && gender &&  age) {        
-                          try {           
-                            const newChild  = new ChildModel({
-                                name: name,
-                                gender: gender,
-                                age:age,
-                                userId: userId
-                              })
-                            await newChild .save()           
-                            res.status(201).send({ "status": "success", "message": "Add Child Success"})
-                          } catch (error) {
-                            console.log(error)
-                            res.send({ "status": "failed", "message": "Unable to Add Child",error:error })
-                          }
-                      
+                    const ownchild = await ChildModel.find({"userId":userId,"isDelete":false})
+                    console.log("ownchild");
+                    console.log(ownchild);
+                    console.log(ownchild.length);
+                    if(ownchild.length >=3){   
+                      res.send({ "status": "failed", "message": "User can't  Add more then three Childs. " })
                     }
+                    else{
+                            if (name && gender &&  age) {        
+                                try {           
+                                  const newChild  = new ChildModel({
+                                      name: name,
+                                      gender: gender,
+                                      age:age,
+                                      userId: userId
+                                    })
+                                  await newChild .save()           
+                                  res.status(201).send({ "status": "success", "message": "Add Child Success"})
+                                } catch (error) {
+                                  console.log(error)
+                                  res.send({ "status": "failed", "message": "Unable to Add Child",error:error })
+                                }
+                            
+                          }
+                          else{
+                            res.send({ "status": "failed", "message": "Something is missing. Please enter all fields." })
+                          }
+                  }
           }
 
           static getChilds = async (req, res) => {    
