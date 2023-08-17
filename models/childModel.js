@@ -5,6 +5,9 @@ const childSchema = new mongoose.Schema({
             type: String,
             required: true,
           },
+          image: {
+            type: String            
+          },
           
           age: {
             type: Number,

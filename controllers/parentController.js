@@ -1,6 +1,7 @@
 import ParentModel from '../models/Parent.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import multer from  'multer'
 class ParentController {
           static ParentRegistration = async (req, res) => {
                   const { name, username, password, password_confirmation, age } = req.body
@@ -90,6 +91,65 @@ class ParentController {
                   res.send({ "status": "failed", "message": "Something wrong validation" })
                 }
           }
+
+          static imageupload = async (req, res) => {
+            console.log(req)
+            try {
+              const config = multer.diskStorage({
+                destination: (req, file, callback) => {
+                  callback(null, "./uploads/parent");
+                },
+                filename: (req, file, callback) => {
+                  callback(null, `image-${Date.now()}.${file.originalname}`);
+                },
+              });
+        
+              const isimage = (req, file, callback) => {
+                if (file.mimetype.startsWith("image")) {
+                  callback(null, true);
+                } else {
+                  callback(new Error("only images allowed"));
+                }
+              };
+        
+              const upload = multer({
+                storage: config,
+                fileFilter: isimage,
+              }).single("photo");
+        
+              upload(req, res, async (err) => {
+                if (err instanceof multer.MulterError) {
+                  return res.status(400).json({ message: "Error uploading file" });
+                } else if (err) {
+                  return res.status(400).json({ message: err.message });
+                }
+        
+                if (!req.file) {
+                  return res.status(400).json({ message: "No image file provided" });
+                }
+        
+                const imageUrl = req.file.path;
+
+                // const id = req.params.id;
+                // const parentID = req.parent._id
+                const newValue = { image:imageUrl }
+                
+                try{
+                  await ParentModel.findByIdAndUpdate(req.parent._id, { $set: newValue })
+                  res.send({ "status": "success", "message": "Profile changed succesfully" })
+                }
+              catch {
+                res.send({ "status": "failed", "message": "Something wrong validation" })
+              }
+
+                // Save the imageUrl to the database or perform any other actions here
+                res.status(200).json({ imageUrl });
+              });
+            } catch (error) {
+              console.error(error);
+              res.status(500).json({ message: "Server error" });
+            }
+          };
 
 
 }
